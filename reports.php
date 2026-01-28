@@ -10,7 +10,7 @@ $staffHoursStmt = $pdo->prepare("SELECT u.name, SUM(TIMESTAMPDIFF(MINUTE, s.cloc
 $staffHoursStmt->execute([$pharmacyId]);
 $staffHours = $staffHoursStmt->fetchAll();
 
-$taxiBalancesStmt = $pdo->prepare("SELECT taxi_driver_name, taxi_driver_phone, SUM(amount_collected_by_taxi) AS total_collected, amount_collected_currency FROM deliveries WHERE status != 'settled' AND is_active = 1 AND pharmacy_id = ? GROUP BY taxi_driver_name, taxi_driver_phone, amount_collected_currency ORDER BY taxi_driver_name");
+$taxiBalancesStmt = $pdo->prepare("SELECT name, phone, balance_iqd, balance_usd FROM taxi_drivers WHERE pharmacy_id = ? AND status = 'active' ORDER BY name");
 $taxiBalancesStmt->execute([$pharmacyId]);
 $taxiBalances = $taxiBalancesStmt->fetchAll();
 
@@ -63,15 +63,17 @@ include __DIR__ . '/includes/header.php';
                     <tr>
                         <th>Driver</th>
                         <th>Phone</th>
-                        <th>Total Collected</th>
+                        <th>Balance IQD</th>
+                        <th>Balance USD</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($taxiBalances as $row): ?>
                         <tr>
-                            <td><?php echo e($row['taxi_driver_name']); ?></td>
-                            <td><?php echo e($row['taxi_driver_phone']); ?></td>
-                            <td><?php echo e(number_format((float) $row['total_collected'], 2)); ?> <?php echo e($row['amount_collected_currency']); ?></td>
+                            <td><?php echo e($row['name']); ?></td>
+                            <td><?php echo e($row['phone']); ?></td>
+                            <td><?php echo e(number_format((float) $row['balance_iqd'], 2)); ?></td>
+                            <td><?php echo e(number_format((float) $row['balance_usd'], 2)); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -10,6 +10,7 @@ A lightweight PHP 8+ + MySQL admin system for pharmacy manager oversight. Built 
 - Daily cash count entry with denomination totals.
 - Staff clock in/out tracking.
 - Reports with CSV export.
+- Notifications for key operational events.
 
 ## Requirements
 - IIS + PHP 8+ + MySQL 8+ (or MariaDB 10.4+).

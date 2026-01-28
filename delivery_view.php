@@ -6,6 +6,8 @@ require_admin();
 $pdo = get_db_connection();
 $deliveryId = (int) ($_GET['id'] ?? 0);
 $pharmacyId = current_pharmacy_id();
+$notifications = new Notifications($pdo);
+$taxiService = new TaxiService($pdo);
 
 $stmt = $pdo->prepare('SELECT * FROM deliveries WHERE id = ? AND is_active = 1 AND pharmacy_id = ?');
 $stmt->execute([$deliveryId, $pharmacyId]);
@@ -24,13 +26,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $newStatus = $_POST['status'] ?? $delivery['status'];
         $note = trim($_POST['note'] ?? '');
-        $updateStmt = $pdo->prepare('UPDATE deliveries SET status = ?, updated_at = NOW() WHERE id = ? AND pharmacy_id = ?');
-        $updateStmt->execute([$newStatus, $deliveryId, $pharmacyId]);
-        $eventStmt = $pdo->prepare('INSERT INTO delivery_events (delivery_id, event, note, created_by) VALUES (?, ?, ?, ?)');
-        $eventStmt->execute([$deliveryId, $newStatus, $note ?: 'Status updated.', current_user()['id']]);
-        $message = 'Delivery updated.';
-        $stmt->execute([$deliveryId, $pharmacyId]);
-        $delivery = $stmt->fetch();
+        $previousStatus = $delivery['status'];
+        if ($newStatus !== $previousStatus) {
+            $updateStmt = $pdo->prepare('UPDATE deliveries SET status = ?, updated_at = NOW() WHERE id = ? AND pharmacy_id = ?');
+            $updateStmt->execute([$newStatus, $deliveryId, $pharmacyId]);
+            $eventStmt = $pdo->prepare('INSERT INTO delivery_events (delivery_id, event, note, created_by) VALUES (?, ?, ?, ?)');
+            $eventStmt->execute([$deliveryId, $newStatus, $note ?: 'Status updated.', current_user()['id']]);
+            if ($newStatus === 'money_collected' && $previousStatus !== 'money_collected') {
+                if (!empty($delivery['taxi_driver_id'])) {
+                    $taxiService->updateBalance((int) $delivery['taxi_driver_id'], (float) $delivery['amount_collected_by_taxi'], $delivery['amount_collected_currency'], 'add');
+                }
+            }
+            if ($newStatus === 'settled' && $previousStatus === 'money_collected') {
+                if (!empty($delivery['taxi_driver_id'])) {
+                    $taxiService->updateBalance((int) $delivery['taxi_driver_id'], (float) $delivery['amount_collected_by_taxi'], $delivery['amount_collected_currency'], 'subtract');
+                }
+            }
+            $notifications->create($pharmacyId, current_user()['id'], 'Delivery ' . $delivery['receipt_barcode'] . ' updated to ' . $newStatus . '.', 'delivery_view.php?id=' . $deliveryId);
+            $message = 'Delivery updated.';
+            $stmt->execute([$deliveryId, $pharmacyId]);
+            $delivery = $stmt->fetch();
+        } else {
+            $message = 'No status change made.';
+        }
     }
 }
 

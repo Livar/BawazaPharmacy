@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-01-27
+### Added
+- OOP service layer for notifications and taxi balance management.
+- Notification dropdown in the header with read tracking.
+- Taxi driver balance tracking and reporting.
+
 ## [1.1.0] - 2026-01-27
 ### Added
 - Multi-pharmacy support with per-location settings and filters.

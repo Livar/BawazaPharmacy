@@ -6,6 +6,13 @@ $pharmacyId = current_pharmacy_id();
 $exchange_rate = fetch_setting('exchange_rate', '1500');
 $appName = app_name();
 $pharmacies = [];
+$notificationItems = [];
+$notificationCount = 0;
+if ($user && $pharmacyId) {
+    $notificationService = new Notifications(get_db_connection());
+    $notificationItems = $notificationService->latest($pharmacyId, 5);
+    $notificationCount = $notificationService->unreadCount($pharmacyId);
+}
 if ($user && $user['role'] === 'admin') {
     $pharmacies = get_pharmacies();
 }
@@ -50,6 +57,31 @@ if ($user && $user['role'] === 'admin') {
                         <button class="btn btn-light btn-sm" type="submit">Switch</button>
                     </form>
                 <?php endif; ?>
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm position-relative dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        Notifications
+                        <?php if ($notificationCount > 0): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?php echo e((string) $notificationCount); ?>
+                            </span>
+                        <?php endif; ?>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 280px;">
+                        <?php if (!$notificationItems): ?>
+                            <div class="text-muted small">No notifications yet.</div>
+                        <?php else: ?>
+                            <?php foreach ($notificationItems as $item): ?>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="small">
+                                        <?php echo e($item['message']); ?>
+                                        <div class="text-muted small"><?php echo e($item['created_at']); ?></div>
+                                    </div>
+                                    <a class="btn btn-sm btn-outline-primary ms-2" href="notification_read.php?id=<?php echo e((string) $item['id']); ?>&redirect=<?php echo e($item['link'] ?? 'dashboard.php'); ?>">View</a>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <div class="text-white small text-end">
                     <div>Rate: 1 USD = <?php echo e($exchange_rate); ?> IQD</div>
                     <div><?php echo e($user['name']); ?> (<?php echo e($user['role']); ?>)</div>

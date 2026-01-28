@@ -20,8 +20,8 @@ switch ($report) {
         $filename = 'staff_hours.csv';
         break;
     case 'taxi_balances':
-        $headers = ['Driver', 'Phone', 'Total Collected', 'Currency'];
-        $stmt = $pdo->prepare("SELECT taxi_driver_name, taxi_driver_phone, SUM(amount_collected_by_taxi) AS total_collected, amount_collected_currency FROM deliveries WHERE status != 'settled' AND is_active = 1 AND pharmacy_id = ? GROUP BY taxi_driver_name, taxi_driver_phone, amount_collected_currency ORDER BY taxi_driver_name");
+        $headers = ['Driver', 'Phone', 'Balance IQD', 'Balance USD'];
+        $stmt = $pdo->prepare("SELECT name, phone, balance_iqd, balance_usd FROM taxi_drivers WHERE pharmacy_id = ? AND status = 'active' ORDER BY name");
         $stmt->execute([$pharmacyId]);
         $rows = $stmt->fetchAll();
         $filename = 'taxi_balances.csv';

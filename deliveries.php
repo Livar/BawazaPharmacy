@@ -6,20 +6,27 @@ require_admin();
 $pdo = get_db_connection();
 $message = '';
 $pharmacyId = current_pharmacy_id();
+$notifications = new Notifications($pdo);
+$taxiService = new TaxiService($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) {
         $message = 'Invalid session token.';
     } else {
-        $stmt = $pdo->prepare('INSERT INTO deliveries (pharmacy_id, receipt_barcode, customer_name, customer_phone, customer_address, taxi_driver_name, taxi_driver_phone, delivery_fee_amount, delivery_fee_currency, payment_method, customer_payment_status, amount_collected_by_taxi, amount_collected_currency, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $driverName = trim($_POST['taxi_driver_name'] ?? '');
+        $driverPhone = trim($_POST['taxi_driver_phone'] ?? '');
+        $driverId = $taxiService->getOrCreateDriver($pharmacyId, $driverName, $driverPhone);
+
+        $stmt = $pdo->prepare('INSERT INTO deliveries (pharmacy_id, taxi_driver_id, receipt_barcode, customer_name, customer_phone, customer_address, taxi_driver_name, taxi_driver_phone, delivery_fee_amount, delivery_fee_currency, payment_method, customer_payment_status, amount_collected_by_taxi, amount_collected_currency, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
             $pharmacyId,
+            $driverId,
             trim($_POST['receipt_barcode'] ?? ''),
             trim($_POST['customer_name'] ?? ''),
             trim($_POST['customer_phone'] ?? ''),
             trim($_POST['customer_address'] ?? ''),
-            trim($_POST['taxi_driver_name'] ?? ''),
-            trim($_POST['taxi_driver_phone'] ?? ''),
+            $driverName,
+            $driverPhone,
             (float) ($_POST['delivery_fee_amount'] ?? 0),
             $_POST['delivery_fee_currency'] ?? 'IQD',
             $_POST['payment_method'] ?? 'cash',
@@ -32,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $deliveryId = $pdo->lastInsertId();
         $eventStmt = $pdo->prepare('INSERT INTO delivery_events (delivery_id, event, note, created_by) VALUES (?, ?, ?, ?)');
         $eventStmt->execute([$deliveryId, 'created', 'Delivery created.', current_user()['id']]);
+        $notifications->create($pharmacyId, current_user()['id'], 'New delivery created for ' . $driverName . '.', 'delivery_view.php?id=' . $deliveryId);
         $message = 'Delivery created successfully.';
     }
 }

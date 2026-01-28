@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/../src/Notifications.php';
+require_once __DIR__ . '/../src/TaxiService.php';
 
 function start_secure_session(): void
 {

@@ -18,9 +18,22 @@ CREATE TABLE users (
     UNIQUE KEY uniq_pharmacy_username (pharmacy_id, username)
 );
 
+CREATE TABLE taxi_drivers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_id INT NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    balance_iqd DECIMAL(12,2) NOT NULL DEFAULT 0,
+    balance_usd DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
+);
+
 CREATE TABLE deliveries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pharmacy_id INT NOT NULL,
+    taxi_driver_id INT NULL,
     receipt_barcode VARCHAR(100) NOT NULL,
     customer_name VARCHAR(150) NOT NULL,
     customer_phone VARCHAR(50),
@@ -39,7 +52,8 @@ CREATE TABLE deliveries (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id),
+    FOREIGN KEY (taxi_driver_id) REFERENCES taxi_drivers(id)
 );
 
 CREATE TABLE delivery_events (
@@ -97,11 +111,26 @@ CREATE TABLE settings (
     FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
 );
 
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_id INT NOT NULL,
+    user_id INT NULL,
+    message VARCHAR(255) NOT NULL,
+    link VARCHAR(255) NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 INSERT INTO pharmacies (name, status) VALUES ('Main Pharmacy', 'active');
 
 INSERT INTO settings (pharmacy_id, setting_key, setting_value) VALUES
 (1, 'exchange_rate', '1500'),
 (1, 'app_name', 'Pharmacy Manager');
+
+INSERT INTO taxi_drivers (pharmacy_id, name, phone, status, balance_iqd, balance_usd) VALUES
+(1, 'Default Driver', '0000000000', 'active', 0, 0);
 
 -- Sample admin user (password: admin123)
 INSERT INTO users (pharmacy_id, name, username, password_hash, role, status) VALUES

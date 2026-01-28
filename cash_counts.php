@@ -6,6 +6,7 @@ require_admin();
 $pdo = get_db_connection();
 $message = '';
 $pharmacyId = current_pharmacy_id();
+$notifications = new Notifications($pdo);
 
 $denominationsIQD = [50000, 25000, 10000, 5000, 1000, 500, 250];
 $denominationsUSD = [100, 50, 20, 10, 5, 1];
@@ -27,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $itemStmt->execute([$countId, $currency, $denom, $qty]);
             }
         }
+        $notifications->create($pharmacyId, current_user()['id'], 'New cash count saved for ' . $countDate . '.', 'cash_counts.php');
         $message = 'Cash count saved.';
     }
 }
