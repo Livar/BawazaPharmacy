@@ -1,0 +1,25 @@
+# Changelog
+
+## [1.3.0] - 2026-01-28
+### Added
+- MVC front controller, router, and OOP controllers/services.
+- View templates with shared layout and route helpers.
+- Legacy entry points redirecting to MVC routes.
+
+## [1.2.0] - 2026-01-27
+### Added
+- OOP service layer for notifications and taxi balance management.
+- Notification dropdown in the header with read tracking.
+- Taxi driver balance tracking and reporting.
+
+## [1.1.0] - 2026-01-27
+### Added
+- Multi-pharmacy support with per-location settings and filters.
+- Configurable pharmacy name and exchange rate settings.
+
+## [1.0.0] - 2026-01-27
+### Added
+- Initial PHP 8+ admin system for pharmacy oversight.
+- Delivery tracking with event logs and status workflow.
+- Cash count entry, staff clock in/out, and CSV reports.
+- Multi-currency support with admin-set exchange rate.
