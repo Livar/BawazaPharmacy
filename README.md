@@ -11,6 +11,7 @@ A lightweight PHP 8+ + MySQL admin system for pharmacy manager oversight. Built 
 - Staff clock in/out tracking.
 - Reports with CSV export.
 - Notifications for key operational events.
+- MVC structure with OOP services and controllers.
 
 ## Requirements
 - IIS + PHP 8+ + MySQL 8+ (or MariaDB 10.4+).
@@ -28,6 +29,14 @@ A lightweight PHP 8+ + MySQL admin system for pharmacy manager oversight. Built 
    - **username:** `admin`
    - **password:** `admin123`
 6. Add additional pharmacies in the database or via admin tools and switch between them in the top bar.
+
+## MVC Routes
+The app uses `index.php` as the front controller with `?route=` parameters, for example:
+- `index.php?route=dashboard`
+- `index.php?route=deliveries`
+- `index.php?route=reports`
+
+Legacy PHP entry files (e.g., `deliveries.php`) redirect to the new MVC routes.
 
 ## Security Notes
 - Passwords are hashed with `password_hash()`.

@@ -1,88 +1,37 @@
 <?php
-require_once __DIR__ . '/includes/functions.php';
-start_secure_session();
+require_once __DIR__ . '/src/bootstrap.php';
 
-if (current_user()) {
-    header('Location: dashboard.php');
-    exit;
-}
+$router = new Router();
 
-$message = '';
-$dbError = '';
-$pharmacies = [];
+$router->get('login', [AuthController::class, 'showLogin']);
+$router->post('login', [AuthController::class, 'login']);
+$router->get('logout', [AuthController::class, 'logout']);
 
-try {
-    $pdo = get_db_connection();
-    $pharmacies = get_pharmacies();
-} catch (PDOException $exception) {
-    $dbError = 'Database connection is not configured yet.';
-}
+$router->get('dashboard', [DashboardController::class, 'index']);
+$router->get('deliveries', [DeliveryController::class, 'index']);
+$router->post('deliveries', [DeliveryController::class, 'index']);
+$router->get('delivery_view', [DeliveryController::class, 'view']);
+$router->post('delivery_view', [DeliveryController::class, 'view']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $pharmacyId = (int) ($_POST['pharmacy_id'] ?? 0);
+$router->get('cash_counts', [CashCountController::class, 'index']);
+$router->post('cash_counts', [CashCountController::class, 'index']);
 
-    if ($dbError) {
-        $message = $dbError;
-    } else {
-        $stmt = $pdo->prepare('SELECT id, name, username, password_hash, role, status, pharmacy_id FROM users WHERE username = ? AND pharmacy_id = ? AND status = "active"');
-        $stmt->execute([$username, $pharmacyId]);
-        $user = $stmt->fetch();
+$router->get('staff', [StaffController::class, 'index']);
+$router->post('staff', [StaffController::class, 'index']);
 
-        if ($user && password_verify($password, $user['password_hash'])) {
-            regenerate_session();
-            $_SESSION['user'] = [
-                'id' => $user['id'],
-                'name' => $user['name'],
-                'username' => $user['username'],
-                'role' => $user['role'],
-            ];
-            $_SESSION['pharmacy_id'] = (int) $user['pharmacy_id'];
-            header('Location: dashboard.php');
-            exit;
-        }
+$router->get('reports', [ReportsController::class, 'index']);
+$router->get('settings', [SettingsController::class, 'index']);
+$router->post('settings', [SettingsController::class, 'index']);
 
-        $message = 'Invalid username, pharmacy, or password.';
-    }
-}
+$router->get('pharmacies', [PharmacyController::class, 'index']);
+$router->post('pharmacies', [PharmacyController::class, 'index']);
+$router->post('pharmacy_switch', [PharmacyController::class, 'switch']);
 
-include __DIR__ . '/includes/header.php';
-?>
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h1 class="h4 mb-2 text-center">Login</h1>
-                <p class="text-muted text-center mb-4">Choose your pharmacy and sign in.</p>
-                <?php if ($dbError): ?>
-                    <div class="alert alert-warning"><?php echo e($dbError); ?></div>
-                <?php endif; ?>
-                <?php if ($message): ?>
-                    <div class="alert alert-danger"><?php echo e($message); ?></div>
-                <?php endif; ?>
-                <form method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Pharmacy</label>
-                        <select name="pharmacy_id" class="form-select" required>
-                            <option value="">Select pharmacy</option>
-                            <?php foreach ($pharmacies as $pharmacy): ?>
-                                <option value="<?php echo e((string) $pharmacy['id']); ?>"><?php echo e($pharmacy['name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" required autofocus>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Sign In</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+$router->get('clock', [ClockController::class, 'index']);
+$router->post('clock', [ClockController::class, 'index']);
+
+$router->get('notification_read', [NotificationController::class, 'read']);
+$router->get('export', [ExportController::class, 'export']);
+
+$route = $_GET['route'] ?? 'login';
+$router->dispatch($route, $_SERVER['REQUEST_METHOD']);

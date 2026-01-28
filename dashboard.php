@@ -1,81 +1,25 @@
 <?php
-require_once __DIR__ . '/includes/functions.php';
-require_login();
-require_admin();
-
-$pdo = get_db_connection();
-$pharmacyId = current_pharmacy_id();
-$unsettledStmt = $pdo->prepare("SELECT COUNT(*) AS total FROM deliveries WHERE status != 'settled' AND is_active = 1 AND pharmacy_id = ?");
-$unsettledStmt->execute([$pharmacyId]);
-$unsettled = $unsettledStmt->fetch()['total'] ?? 0;
-
-$recentDeliveriesStmt = $pdo->prepare("SELECT id, receipt_barcode, customer_name, taxi_driver_name, status, created_at FROM deliveries WHERE is_active = 1 AND pharmacy_id = ? ORDER BY created_at DESC LIMIT 5");
-$recentDeliveriesStmt->execute([$pharmacyId]);
-$recentDeliveries = $recentDeliveriesStmt->fetchAll();
-
-$cashCountStmt = $pdo->prepare("SELECT count_date, notes FROM cash_counts WHERE pharmacy_id = ? ORDER BY count_date DESC LIMIT 5");
-$cashCountStmt->execute([$pharmacyId]);
-$cashCounts = $cashCountStmt->fetchAll();
-
-include __DIR__ . '/includes/header.php';
-?>
-<h1 class="h3 mb-3">Admin Dashboard</h1>
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card border-primary">
-            <div class="card-body">
-                <h5 class="card-title">Unsettled Deliveries</h5>
-                <p class="display-6 mb-0"><?php echo e((string) $unsettled); ?></p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Recent Deliveries</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Receipt</th>
-                                <th>Customer</th>
-                                <th>Taxi Driver</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($recentDeliveries as $delivery): ?>
-                            <tr>
-                                <td><a href="delivery_view.php?id=<?php echo e((string) $delivery['id']); ?>"><?php echo e($delivery['receipt_barcode']); ?></a></td>
-                                <td><?php echo e($delivery['customer_name']); ?></td>
-                                <td><?php echo e($delivery['taxi_driver_name']); ?></td>
-                                <td><span class="badge bg-secondary badge-status"><?php echo e($delivery['status']); ?></span></td>
-                                <td><?php echo e($delivery['created_at']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row g-3 mt-3">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Recent Cash Counts</h5>
-                <ul class="list-group list-group-flush">
-                    <?php foreach ($cashCounts as $count): ?>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span><?php echo e($count['count_date']); ?></span>
-                            <span class="text-muted small"><?php echo e($count['notes']); ?></span>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+$target = 'index.php';
+$query = $_SERVER['QUERY_STRING'] ?? '';
+$routeMap = [
+    'dashboard.php' => 'dashboard',
+    'deliveries.php' => 'deliveries',
+    'delivery_view.php' => 'delivery_view',
+    'cash_counts.php' => 'cash_counts',
+    'staff.php' => 'staff',
+    'reports.php' => 'reports',
+    'settings.php' => 'settings',
+    'pharmacies.php' => 'pharmacies',
+    'pharmacy_switch.php' => 'pharmacy_switch',
+    'clock.php' => 'clock',
+    'export.php' => 'export',
+    'logout.php' => 'logout',
+    'notification_read.php' => 'notification_read',
+];
+$route = $routeMap[basename(__FILE__)] ?? 'login';
+$target .= '?route=' . $route;
+if ($query) {
+    $target .= '&' . $query;
+}
+header('Location: ' . $target);
+exit;

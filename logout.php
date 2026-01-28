@@ -1,11 +1,25 @@
 <?php
-require_once __DIR__ . '/includes/functions.php';
-start_secure_session();
-$_SESSION = [];
-if (ini_get('session.use_cookies')) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'] ?? false, $params['httponly'] ?? true);
+$target = 'index.php';
+$query = $_SERVER['QUERY_STRING'] ?? '';
+$routeMap = [
+    'dashboard.php' => 'dashboard',
+    'deliveries.php' => 'deliveries',
+    'delivery_view.php' => 'delivery_view',
+    'cash_counts.php' => 'cash_counts',
+    'staff.php' => 'staff',
+    'reports.php' => 'reports',
+    'settings.php' => 'settings',
+    'pharmacies.php' => 'pharmacies',
+    'pharmacy_switch.php' => 'pharmacy_switch',
+    'clock.php' => 'clock',
+    'export.php' => 'export',
+    'logout.php' => 'logout',
+    'notification_read.php' => 'notification_read',
+];
+$route = $routeMap[basename(__FILE__)] ?? 'login';
+$target .= '?route=' . $route;
+if ($query) {
+    $target .= '&' . $query;
 }
-session_destroy();
-header('Location: index.php');
+header('Location: ' . $target);
 exit;

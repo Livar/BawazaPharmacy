@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0] - 2026-01-28
+### Added
+- MVC front controller, router, and OOP controllers/services.
+- View templates with shared layout and route helpers.
+- Legacy entry points redirecting to MVC routes.
+
 ## [1.2.0] - 2026-01-27
 ### Added
 - OOP service layer for notifications and taxi balance management.
