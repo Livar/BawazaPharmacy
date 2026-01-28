@@ -5,7 +5,7 @@ const DB_NAME = 'pharmacy_manager';
 const DB_USER = 'root';
 const DB_PASS = '';
 
-const APP_NAME = 'Bawaza Pharmacy Manager';
+const APP_DEFAULT_NAME = 'Pharmacy Manager';
 const APP_TIMEZONE = 'Asia/Baghdad';
 
 // Session settings.

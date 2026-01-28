@@ -5,6 +5,7 @@ require_admin();
 
 $pdo = get_db_connection();
 $message = '';
+$pharmacyId = current_pharmacy_id();
 
 $denominationsIQD = [50000, 25000, 10000, 5000, 1000, 500, 250];
 $denominationsUSD = [100, 50, 20, 10, 5, 1];
@@ -15,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $countDate = $_POST['count_date'] ?? date('Y-m-d');
         $notes = trim($_POST['notes'] ?? '');
-        $stmt = $pdo->prepare('INSERT INTO cash_counts (count_date, notes, created_by) VALUES (?, ?, ?)');
-        $stmt->execute([$countDate, $notes, current_user()['id']]);
+        $stmt = $pdo->prepare('INSERT INTO cash_counts (pharmacy_id, count_date, notes, created_by) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$pharmacyId, $countDate, $notes, current_user()['id']]);
         $countId = $pdo->lastInsertId();
 
         $itemStmt = $pdo->prepare('INSERT INTO cash_count_items (cash_count_id, currency, denomination, quantity) VALUES (?, ?, ?, ?)');
@@ -30,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$countsStmt = $pdo->query('SELECT id, count_date, notes FROM cash_counts ORDER BY count_date DESC LIMIT 30');
+$countsStmt = $pdo->prepare('SELECT id, count_date, notes FROM cash_counts WHERE pharmacy_id = ? ORDER BY count_date DESC LIMIT 30');
+$countsStmt->execute([$pharmacyId]);
 $counts = $countsStmt->fetchAll();
 
 include __DIR__ . '/includes/header.php';

@@ -5,9 +5,10 @@ require_admin();
 
 $pdo = get_db_connection();
 $deliveryId = (int) ($_GET['id'] ?? 0);
+$pharmacyId = current_pharmacy_id();
 
-$stmt = $pdo->prepare('SELECT * FROM deliveries WHERE id = ? AND is_active = 1');
-$stmt->execute([$deliveryId]);
+$stmt = $pdo->prepare('SELECT * FROM deliveries WHERE id = ? AND is_active = 1 AND pharmacy_id = ?');
+$stmt->execute([$deliveryId, $pharmacyId]);
 $delivery = $stmt->fetch();
 
 if (!$delivery) {
@@ -23,12 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $newStatus = $_POST['status'] ?? $delivery['status'];
         $note = trim($_POST['note'] ?? '');
-        $updateStmt = $pdo->prepare('UPDATE deliveries SET status = ?, updated_at = NOW() WHERE id = ?');
-        $updateStmt->execute([$newStatus, $deliveryId]);
+        $updateStmt = $pdo->prepare('UPDATE deliveries SET status = ?, updated_at = NOW() WHERE id = ? AND pharmacy_id = ?');
+        $updateStmt->execute([$newStatus, $deliveryId, $pharmacyId]);
         $eventStmt = $pdo->prepare('INSERT INTO delivery_events (delivery_id, event, note, created_by) VALUES (?, ?, ?, ?)');
         $eventStmt->execute([$deliveryId, $newStatus, $note ?: 'Status updated.', current_user()['id']]);
         $message = 'Delivery updated.';
-        $stmt->execute([$deliveryId]);
+        $stmt->execute([$deliveryId, $pharmacyId]);
         $delivery = $stmt->fetch();
     }
 }

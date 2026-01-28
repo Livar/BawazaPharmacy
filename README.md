@@ -1,10 +1,11 @@
-# Bawaza Pharmacy Manager
+# Pharmacy Manager
 
 A lightweight PHP 8+ + MySQL admin system for pharmacy manager oversight. Built with plain PHP, Bootstrap 5, and vanilla JavaScript. No frameworks.
 
 ## Features
 - Session-based authentication with admin/staff roles.
 - Taxi delivery tracking with event logs and status workflow.
+- Multi-pharmacy support with per-location settings.
 - Multi-currency support (IQD/USD) with configurable exchange rate.
 - Daily cash count entry with denomination totals.
 - Staff clock in/out tracking.
@@ -25,6 +26,7 @@ A lightweight PHP 8+ + MySQL admin system for pharmacy manager oversight. Built 
 5. Log in with the seeded admin user:
    - **username:** `admin`
    - **password:** `admin123`
+6. Add additional pharmacies in the database or via admin tools and switch between them in the top bar.
 
 ## Security Notes
 - Passwords are hashed with `password_hash()`.

@@ -5,13 +5,15 @@ require_admin();
 
 $pdo = get_db_connection();
 $message = '';
+$pharmacyId = current_pharmacy_id();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) {
         $message = 'Invalid session token.';
     } else {
-        $stmt = $pdo->prepare('INSERT INTO deliveries (receipt_barcode, customer_name, customer_phone, customer_address, taxi_driver_name, taxi_driver_phone, delivery_fee_amount, delivery_fee_currency, payment_method, customer_payment_status, amount_collected_by_taxi, amount_collected_currency, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO deliveries (pharmacy_id, receipt_barcode, customer_name, customer_phone, customer_address, taxi_driver_name, taxi_driver_phone, delivery_fee_amount, delivery_fee_currency, payment_method, customer_payment_status, amount_collected_by_taxi, amount_collected_currency, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
+            $pharmacyId,
             trim($_POST['receipt_barcode'] ?? ''),
             trim($_POST['customer_name'] ?? ''),
             trim($_POST['customer_phone'] ?? ''),
@@ -34,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$deliveriesStmt = $pdo->query("SELECT id, receipt_barcode, customer_name, taxi_driver_name, delivery_fee_amount, delivery_fee_currency, status, created_at FROM deliveries WHERE is_active = 1 ORDER BY created_at DESC LIMIT 50");
+$deliveriesStmt = $pdo->prepare("SELECT id, receipt_barcode, customer_name, taxi_driver_name, delivery_fee_amount, delivery_fee_currency, status, created_at FROM deliveries WHERE is_active = 1 AND pharmacy_id = ? ORDER BY created_at DESC LIMIT 50");
+$deliveriesStmt->execute([$pharmacyId]);
 $deliveries = $deliveriesStmt->fetchAll();
 
 include __DIR__ . '/includes/header.php';

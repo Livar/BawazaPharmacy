@@ -1,15 +1,26 @@
-CREATE TABLE users (
+CREATE TABLE pharmacies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff',
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_id INT NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff',
+    status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id),
+    UNIQUE KEY uniq_pharmacy_username (pharmacy_id, username)
+);
+
 CREATE TABLE deliveries (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_id INT NOT NULL,
     receipt_barcode VARCHAR(100) NOT NULL,
     customer_name VARCHAR(150) NOT NULL,
     customer_phone VARCHAR(50),
@@ -27,7 +38,8 @@ CREATE TABLE deliveries (
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (created_by) REFERENCES users(id)
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
 );
 
 CREATE TABLE delivery_events (
@@ -43,13 +55,15 @@ CREATE TABLE delivery_events (
 
 CREATE TABLE cash_counts (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_id INT NOT NULL,
     count_date DATE NOT NULL,
     notes VARCHAR(255),
     created_by INT NOT NULL,
     updated_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (updated_by) REFERENCES users(id)
+    FOREIGN KEY (updated_by) REFERENCES users(id),
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
 );
 
 CREATE TABLE cash_count_items (
@@ -76,12 +90,19 @@ CREATE TABLE staff_shifts (
 
 CREATE TABLE settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    setting_key VARCHAR(100) NOT NULL UNIQUE,
-    setting_value VARCHAR(255) NOT NULL
+    pharmacy_id INT NOT NULL,
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value VARCHAR(255) NOT NULL,
+    UNIQUE KEY uniq_setting (pharmacy_id, setting_key),
+    FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id)
 );
 
-INSERT INTO settings (setting_key, setting_value) VALUES ('exchange_rate', '1500');
+INSERT INTO pharmacies (name, status) VALUES ('Main Pharmacy', 'active');
+
+INSERT INTO settings (pharmacy_id, setting_key, setting_value) VALUES
+(1, 'exchange_rate', '1500'),
+(1, 'app_name', 'Pharmacy Manager');
 
 -- Sample admin user (password: admin123)
-INSERT INTO users (name, username, password_hash, role, status) VALUES
-('Admin User', 'admin', '$2y$10$Q2iBzwFY8r5D6iYB8fXU8eG12f0XKXT9j/6c0RrIvV7WcK9iQbC12', 'admin', 'active');
+INSERT INTO users (pharmacy_id, name, username, password_hash, role, status) VALUES
+(1, 'Admin User', 'admin', '$2y$10$Q2iBzwFY8r5D6iYB8fXU8eG12f0XKXT9j/6c0RrIvV7WcK9iQbC12', 'admin', 'active');

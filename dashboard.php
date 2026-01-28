@@ -4,13 +4,17 @@ require_login();
 require_admin();
 
 $pdo = get_db_connection();
-$unsettledStmt = $pdo->query("SELECT COUNT(*) AS total FROM deliveries WHERE status != 'settled' AND is_active = 1");
+$pharmacyId = current_pharmacy_id();
+$unsettledStmt = $pdo->prepare("SELECT COUNT(*) AS total FROM deliveries WHERE status != 'settled' AND is_active = 1 AND pharmacy_id = ?");
+$unsettledStmt->execute([$pharmacyId]);
 $unsettled = $unsettledStmt->fetch()['total'] ?? 0;
 
-$recentDeliveriesStmt = $pdo->query("SELECT id, receipt_barcode, customer_name, taxi_driver_name, status, created_at FROM deliveries WHERE is_active = 1 ORDER BY created_at DESC LIMIT 5");
+$recentDeliveriesStmt = $pdo->prepare("SELECT id, receipt_barcode, customer_name, taxi_driver_name, status, created_at FROM deliveries WHERE is_active = 1 AND pharmacy_id = ? ORDER BY created_at DESC LIMIT 5");
+$recentDeliveriesStmt->execute([$pharmacyId]);
 $recentDeliveries = $recentDeliveriesStmt->fetchAll();
 
-$cashCountStmt = $pdo->query("SELECT count_date, notes FROM cash_counts ORDER BY count_date DESC LIMIT 5");
+$cashCountStmt = $pdo->prepare("SELECT count_date, notes FROM cash_counts WHERE pharmacy_id = ? ORDER BY count_date DESC LIMIT 5");
+$cashCountStmt->execute([$pharmacyId]);
 $cashCounts = $cashCountStmt->fetchAll();
 
 include __DIR__ . '/includes/header.php';

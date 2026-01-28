@@ -4,17 +4,22 @@ require_login();
 require_admin();
 
 $pdo = get_db_connection();
+$pharmacyId = current_pharmacy_id();
 
-$staffHoursStmt = $pdo->query("SELECT u.name, SUM(TIMESTAMPDIFF(MINUTE, s.clock_in, COALESCE(s.clock_out, NOW())))/60 AS hours FROM staff_shifts s JOIN users u ON s.user_id = u.id GROUP BY u.name ORDER BY u.name");
+$staffHoursStmt = $pdo->prepare("SELECT u.name, SUM(TIMESTAMPDIFF(MINUTE, s.clock_in, COALESCE(s.clock_out, NOW())))/60 AS hours FROM staff_shifts s JOIN users u ON s.user_id = u.id WHERE u.pharmacy_id = ? GROUP BY u.name ORDER BY u.name");
+$staffHoursStmt->execute([$pharmacyId]);
 $staffHours = $staffHoursStmt->fetchAll();
 
-$taxiBalancesStmt = $pdo->query("SELECT taxi_driver_name, taxi_driver_phone, SUM(amount_collected_by_taxi) AS total_collected, amount_collected_currency FROM deliveries WHERE status != 'settled' AND is_active = 1 GROUP BY taxi_driver_name, taxi_driver_phone, amount_collected_currency ORDER BY taxi_driver_name");
+$taxiBalancesStmt = $pdo->prepare("SELECT taxi_driver_name, taxi_driver_phone, SUM(amount_collected_by_taxi) AS total_collected, amount_collected_currency FROM deliveries WHERE status != 'settled' AND is_active = 1 AND pharmacy_id = ? GROUP BY taxi_driver_name, taxi_driver_phone, amount_collected_currency ORDER BY taxi_driver_name");
+$taxiBalancesStmt->execute([$pharmacyId]);
 $taxiBalances = $taxiBalancesStmt->fetchAll();
 
-$deliverySummaryStmt = $pdo->query("SELECT status, COUNT(*) AS total FROM deliveries WHERE is_active = 1 GROUP BY status ORDER BY status");
+$deliverySummaryStmt = $pdo->prepare("SELECT status, COUNT(*) AS total FROM deliveries WHERE is_active = 1 AND pharmacy_id = ? GROUP BY status ORDER BY status");
+$deliverySummaryStmt->execute([$pharmacyId]);
 $deliverySummary = $deliverySummaryStmt->fetchAll();
 
-$cashHistoryStmt = $pdo->query("SELECT c.id, c.count_date, c.notes, SUM(i.denomination * i.quantity) AS total_amount, i.currency FROM cash_counts c JOIN cash_count_items i ON c.id = i.cash_count_id GROUP BY c.id, i.currency ORDER BY c.count_date DESC");
+$cashHistoryStmt = $pdo->prepare("SELECT c.id, c.count_date, c.notes, SUM(i.denomination * i.quantity) AS total_amount, i.currency FROM cash_counts c JOIN cash_count_items i ON c.id = i.cash_count_id WHERE c.pharmacy_id = ? GROUP BY c.id, i.currency ORDER BY c.count_date DESC");
+$cashHistoryStmt->execute([$pharmacyId]);
 $cashHistory = $cashHistoryStmt->fetchAll();
 
 include __DIR__ . '/includes/header.php';

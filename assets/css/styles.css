@@ -1,5 +1,22 @@
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle at top, #f4f7fb, #eef2f7 40%, #e8edf3 100%);
+}
+
+.app-shell {
+    min-height: 100vh;
+}
+
+.navbar-brand {
+    letter-spacing: 0.3px;
+}
+
+.card {
+    border-radius: 16px;
+}
+
+.card-title {
+    font-weight: 600;
 }
 
 .clock-card {
@@ -14,8 +31,14 @@ body {
 
 .badge-status {
     font-size: 0.85rem;
+    text-transform: capitalize;
 }
 
 .table thead th {
     white-space: nowrap;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0.6rem;
 }

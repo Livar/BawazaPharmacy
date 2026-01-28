@@ -5,6 +5,7 @@ require_admin();
 
 $pdo = get_db_connection();
 $message = '';
+$pharmacyId = current_pharmacy_id();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf_token'] ?? '')) {
@@ -17,16 +18,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($name && $username && $password) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO users (name, username, password_hash, role, status) VALUES (?, ?, ?, ?, "active")');
-            $stmt->execute([$name, $username, $hash, $role]);
-            $message = 'Staff member added.';
+            $checkStmt = $pdo->prepare('SELECT id FROM users WHERE username = ? AND pharmacy_id = ?');
+            $checkStmt->execute([$username, $pharmacyId]);
+            if ($checkStmt->fetch()) {
+                $message = 'Username already exists for this pharmacy.';
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO users (pharmacy_id, name, username, password_hash, role, status) VALUES (?, ?, ?, ?, ?, "active")');
+                $stmt->execute([$pharmacyId, $name, $username, $hash, $role]);
+                $message = 'Staff member added.';
+            }
         } else {
             $message = 'Please fill in all required fields.';
         }
     }
 }
 
-$staffStmt = $pdo->query('SELECT id, name, username, role, status FROM users ORDER BY name');
+$staffStmt = $pdo->prepare('SELECT id, name, username, role, status FROM users WHERE pharmacy_id = ? ORDER BY name');
+$staffStmt->execute([$pharmacyId]);
 $staff = $staffStmt->fetchAll();
 
 include __DIR__ . '/includes/header.php';

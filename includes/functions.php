@@ -16,7 +16,12 @@ function current_user(): ?array
 
 function require_login(): void
 {
-    if (!current_user()) {
+    $user = current_user();
+    if (!$user) {
+        header('Location: index.php');
+        exit;
+    }
+    if (!current_pharmacy_id()) {
         header('Location: index.php');
         exit;
     }
@@ -58,18 +63,44 @@ function e(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
-function fetch_setting(string $key, $default = null)
+function current_pharmacy_id(): ?int
+{
+    start_secure_session();
+    return isset($_SESSION['pharmacy_id']) ? (int) $_SESSION['pharmacy_id'] : null;
+}
+
+function get_pharmacies(): array
 {
     $pdo = get_db_connection();
-    $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
-    $stmt->execute([$key]);
+    $stmt = $pdo->query('SELECT id, name, status FROM pharmacies WHERE status = "active" ORDER BY name');
+    return $stmt->fetchAll();
+}
+
+function fetch_setting(string $key, $default = null, ?int $pharmacyId = null)
+{
+    $pdo = get_db_connection();
+    $pharmacyId = $pharmacyId ?? current_pharmacy_id();
+    if ($pharmacyId === null) {
+        return $default;
+    }
+    $stmt = $pdo->prepare('SELECT setting_value FROM settings WHERE setting_key = ? AND pharmacy_id = ?');
+    $stmt->execute([$key, $pharmacyId]);
     $row = $stmt->fetch();
     return $row ? $row['setting_value'] : $default;
 }
 
-function upsert_setting(string $key, string $value): void
+function upsert_setting(string $key, string $value, ?int $pharmacyId = null): void
 {
     $pdo = get_db_connection();
-    $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
-    $stmt->execute([$key, $value]);
+    $pharmacyId = $pharmacyId ?? current_pharmacy_id();
+    if ($pharmacyId === null) {
+        return;
+    }
+    $stmt = $pdo->prepare('INSERT INTO settings (pharmacy_id, setting_key, setting_value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+    $stmt->execute([$pharmacyId, $key, $value]);
+}
+
+function app_name(): string
+{
+    return (string) fetch_setting('app_name', APP_DEFAULT_NAME);
 }
