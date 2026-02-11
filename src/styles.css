@@ -50,6 +50,14 @@ label {
   font-size: 0.9rem;
 }
 
+.checkbox-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
 input,
 textarea,
 select,
@@ -122,6 +130,11 @@ button:disabled {
   text-decoration: none;
   color: #0c4a6e;
   font-size: 0.9rem;
+}
+
+.warning {
+  color: #b45309;
+  font-weight: 700;
 }
 
 .error {

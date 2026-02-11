@@ -7,18 +7,28 @@ import {
   orderBy,
   query,
   setDoc,
-  Timestamp
+  Timestamp,
+  where
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { auth, db, storage } from './firebase';
 import type { Medicine, MedicineInput } from '../types/medicine';
 
 const medicinesCollection = collection(db, 'medicines');
 
 const nowTimestamp = () => Timestamp.now().toDate().toISOString();
 
+function getCurrentUid() {
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('You must be logged in to manage medicines.');
+  }
+  return uid;
+}
+
 export async function listMedicines(): Promise<Medicine[]> {
-  const q = query(medicinesCollection, orderBy('brandName'));
+  const uid = getCurrentUid();
+  const q = query(medicinesCollection, where('ownerId', '==', uid), orderBy('brandName'));
   const snap = await getDocs(q);
 
   return snap.docs.map((item) => ({
@@ -31,9 +41,16 @@ export async function createMedicine(input: MedicineInput): Promise<void> {
   const timestamp = nowTimestamp();
   await addDoc(medicinesCollection, {
     ...input,
+    ownerId: getCurrentUid(),
     createdAt: timestamp,
     updatedAt: timestamp
   });
+}
+
+export async function bulkCreateMedicines(inputs: MedicineInput[]): Promise<void> {
+  for (const item of inputs) {
+    await createMedicine(item);
+  }
 }
 
 export async function updateMedicine(id: string, input: MedicineInput): Promise<void> {
@@ -41,6 +58,7 @@ export async function updateMedicine(id: string, input: MedicineInput): Promise<
     doc(db, 'medicines', id),
     {
       ...input,
+      ownerId: getCurrentUid(),
       updatedAt: nowTimestamp()
     },
     { merge: true }

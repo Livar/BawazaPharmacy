@@ -18,6 +18,7 @@ export function MedicineList({ items, onEdit, onDelete }: MedicineListProps) {
           <div>
             <h3>{item.brandName}</h3>
             <p className="muted">Generic: {item.genericName}</p>
+            {item.requiresPrescription && <p className="warning">⚠ Prescription required</p>}
             <p>{item.uses || 'No uses provided yet.'}</p>
             <p>
               <strong>Dosage:</strong> {item.dosage || 'N/A'}
@@ -28,6 +29,11 @@ export function MedicineList({ items, onEdit, onDelete }: MedicineListProps) {
             <p>
               <strong>Location:</strong> Zone {item.zone || '-'} / Shelf {item.shelfCode}
             </p>
+            {item.barcode && (
+              <p>
+                <strong>Barcode:</strong> {item.barcode}
+              </p>
+            )}
           </div>
           <div className="actions">
             {item.packagePhotoUrl && (

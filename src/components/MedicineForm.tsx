@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { uploadMedicineImage } from '../services/medicineService';
 import type { Medicine, MedicineInput, MedicineType } from '../types/medicine';
 
@@ -20,6 +20,8 @@ const emptyForm: MedicineInput = {
   shelfCode: '',
   zone: '',
   notes: '',
+  barcode: '',
+  requiresPrescription: false,
   aliases: [],
   locationPhotoUrl: '',
   packagePhotoUrl: '',
@@ -30,6 +32,10 @@ export function MedicineForm({ initialValue, onSubmit, onCancel, submitting }: M
   const [form, setForm] = useState<MedicineInput>(initialValue ? { ...initialValue } : emptyForm);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setForm(initialValue ? { ...initialValue } : emptyForm);
+  }, [initialValue]);
 
   const title = useMemo(() => (initialValue ? 'Edit medicine' : 'Add medicine'), [initialValue]);
 
@@ -57,6 +63,7 @@ export function MedicineForm({ initialValue, onSubmit, onCancel, submitting }: M
         event.preventDefault();
         void onSubmit({
           ...form,
+          barcode: form.barcode?.trim(),
           aliases: form.aliases.filter(Boolean)
         });
       }}
@@ -103,6 +110,10 @@ export function MedicineForm({ initialValue, onSubmit, onCancel, submitting }: M
           />
         </label>
         <label>
+          Barcode (optional)
+          <input value={form.barcode} onChange={(event) => updateField('barcode', event.target.value)} placeholder="e.g. 8901234567890" />
+        </label>
+        <label>
           Aliases (comma-separated)
           <input
             value={form.aliases.join(', ')}
@@ -119,14 +130,31 @@ export function MedicineForm({ initialValue, onSubmit, onCancel, submitting }: M
         </label>
       </div>
 
+      <label className="checkbox-row">
+        <input
+          type="checkbox"
+          checked={form.requiresPrescription}
+          onChange={(event) => updateField('requiresPrescription', event.target.checked)}
+        />
+        Requires prescription warning
+      </label>
+
       <div className="upload-row">
         <label>
           Package photo
-          <input type="file" accept="image/*" onChange={(event) => event.target.files?.[0] && void handleImageUpload(event.target.files[0], 'packagePhotoUrl')} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => event.target.files?.[0] && void handleImageUpload(event.target.files[0], 'packagePhotoUrl')}
+          />
         </label>
         <label>
           Shelf/location photo
-          <input type="file" accept="image/*" onChange={(event) => event.target.files?.[0] && void handleImageUpload(event.target.files[0], 'locationPhotoUrl')} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => event.target.files?.[0] && void handleImageUpload(event.target.files[0], 'locationPhotoUrl')}
+          />
         </label>
       </div>
 

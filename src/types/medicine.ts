@@ -9,6 +9,7 @@ export type MedicineType =
 
 export interface Medicine {
   id: string;
+  ownerId: string;
   brandName: string;
   genericName: string;
   uses: string;
@@ -17,6 +18,8 @@ export interface Medicine {
   shelfCode: string;
   zone: string;
   notes: string;
+  barcode?: string;
+  requiresPrescription: boolean;
   locationPhotoUrl?: string;
   packagePhotoUrl?: string;
   aliases: string[];
@@ -25,4 +28,4 @@ export interface Medicine {
   updatedAt: string;
 }
 
-export type MedicineInput = Omit<Medicine, 'id' | 'createdAt' | 'updatedAt'>;
+export type MedicineInput = Omit<Medicine, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'>;
