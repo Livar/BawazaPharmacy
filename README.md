@@ -80,3 +80,18 @@ Backend/API requires PHP + MySQL configured per installation guide.
 - Installable on Android/iOS/desktop browsers.
 - Works best over HTTPS in production (or localhost for testing).
 - Service worker caches shell + image assets for improved mobile behavior.
+
+
+## Troubleshooting: blank white page with title visible
+If you can see the browser tab title but page is blank, the most common cause is a stale service worker/cache from a previous build.
+
+1. Hard refresh once (`Ctrl+F5` / `Cmd+Shift+R`).
+2. Open browser DevTools > Application/Storage and clear site data.
+3. Unregister service worker for the site, then reload.
+4. Rebuild and redeploy:
+   ```bash
+   npm run build
+   ```
+5. Verify `/api/auth.php?action=me` returns JSON, not an HTML/PHP error page.
+
+This project now auto-unregisters service workers in development mode to reduce this issue during local testing.
