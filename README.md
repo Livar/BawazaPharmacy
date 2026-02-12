@@ -17,6 +17,15 @@ A mobile-first pharmacy helper app for storing medicine knowledge and exact in-s
 - CSV export/import for backup or bulk loading.
 - Shelf map section grouped by zone/shelf.
 
+
+## On-prem Windows Server guides
+
+If you want to host inside the pharmacy (no external hosting), use these:
+
+- `docs/windows-onprem-deployment-guide.md`
+- `docs/staff-phone-install-and-usage-guide.md`
+- IIS SPA config template: `deploy/iis/web.config`
+
 ## 1) Local setup
 
 ### Prerequisites
