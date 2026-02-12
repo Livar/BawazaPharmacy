@@ -1,0 +1,154 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+header h1 {
+  margin-bottom: 0.4rem;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.success {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.checkbox-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+button {
+  cursor: pointer;
+  background: #155e75;
+  color: white;
+  border: none;
+}
+
+button.secondary {
+  background: #475569;
+}
+
+button.danger {
+  background: #b91c1c;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.upload-row,
+.preview-row,
+.button-row,
+.search-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.preview-row img {
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card {
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 140px;
+}
+
+.actions a {
+  text-decoration: none;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+}
+
+.warning {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.muted {
+  color: #475569;
+}
+
+.ocr-result pre {
+  max-height: 180px;
+  overflow: auto;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem;
+}
